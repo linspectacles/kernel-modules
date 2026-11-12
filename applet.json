@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "linspectacles-kernel-modules",
+  "name": "Kernel Modules",
+  "version": "1.0.7",
+  "author": "brunonlinespace",
+  "editor": "brunonlinespace",
+  "publisher": "brunonlinespace",
+  "organization_id": "linspectacles",
+  "organization_url": "https://github.com/linspectacles/",
+  "repository": "https://github.com/linspectacles/kernel-modules",
+  "order": 20,
+  "entrypoint": "kernel_modules/applet.py",
+  "factory": "create_applet",
+  "standalone": "standalone.py",
+  "description": "Read-only loaded-kernel-module inspector with modinfo metadata, runtime sysfs parameters and relationships, taint context, provenance, and selected-module /proc/kallsyms symbol lookup.",
+  "platforms": [
+    "linux"
+  ],
+  "read_only": true
+}

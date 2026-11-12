@@ -1,34 +1,132 @@
-# LinSpectacles | Kernel Modules
-Linux Kernel Modules Inspector, a python equivalent of the lsmod and modinfo commands | Standalone applet for the Linspector Suite ecosystem.
+<p align="center">
+  <a href="https://github.com/brunonlinespace/brunonlinespace/blob/main/linspectacles/kernel-modules.png">
+    <img
+      src="https://raw.githubusercontent.com/brunonlinespace/brunonlinespace/main/linspectacles/kernel-modules.png"
+      alt="Kernel Modules screenshot"
+      width="900"
+    >
+  </a>
+</p>
 
-Hello, world!
+# Kernel Modules
 
-<b>First things first?</b>
-I am NOT A PROGRAMMER. I simply had fun prompting Gemini to output all the python codes you will find in this repository.
+**Expose. Explore. Explain.**
 
-<b>OK, now about the concept?</b>
-I wanted to create a GUI tool to easily visualise the kernel modules currently loaded by my OS, just to learn more about each one of them.
+Kernel Modules is a read-only inspector for loaded Linux kernel modules, combining the runtime module list with static `modinfo` metadata, sysfs runtime state, taint context and selected-module symbol lookup.
 
-<img width="480" height="270" alt="Screenshot_20260730_112910" src="https://github.com/user-attachments/assets/268bcc2c-8a0c-4d60-be85-6e03da0d3cd8" />
-<img width="480" height="270" alt="Screenshot_20260730_112831" src="https://github.com/user-attachments/assets/e7c29baa-4531-4e05-8bfe-6d8133893925" />
+Current release: **1.0.7**
 
-<b>OK, so what did I do?</b>
-As I have no coding experience, I asked Gemini to code this for me so it came up with the ".py" files you see. 
+Repository: <https://github.com/linspectacles/kernel-modules>
 
-<b>OK, now tell me about the files?</b>
-The files in the "Main" branch are the latest and greatest. The files in the "Archive" branch were previous versions. All the versions uploaded here represent the evolution of the concept, for you to have a look and audit, use and fork, and do as you well please (I think I put it under GPL3). All versions were tested only on Fedora 44 KDE. I did not test this on any other DEs or non-systemd systems. I did not test this on any Arch/Debian-derivative either. But because they are written in python, I believe they should work cross-platform.
+## What Kernel Modules is
 
-<b>OK, how do I run this?</b>
-1. Ensure you have the required dependencies: python3.
-2. Download the python file(s) you wish.
-3. Ensure you're on the same directory of the file or navigate to it.
-4. On the terminal, launch it by typing "python3" + the name of the file you want to try.
-4. Alternatively, you can grant "executable" permissions to the file and launch it via your file manager.
-5. Have fun!
+Kernel Modules answers a focused question: **which modules are loaded, what metadata and relationships do they report, and what runtime state is exposed for the selected module?**
 
-<strong>Current version: Version 11.</strong>
-- Manually modified the headers to align with my other projects.
-- Rest of the change log in the "Archive" branch (https://github.com/brunonlinespace/linux-lsmod-gui.py/tree/archive).
+It keeps acquisition and interpretation close to the Linux interfaces actually used by the applet. When a source is unavailable, restricted, or does not report a field, the README does not imply that the applet can manufacture the missing information.
 
-<hr>
-<p>I thought this was a fun little project so I decided to share it in case you find it fun/useful too. You can help me make it better, but I do not plan to spend much time on this project unless it really does take off. I have no clue about python (yet?). I am also new in GitHub so please be kind to me :-P</p>
+## Highlights
+
+- Loaded-module inventory from `/proc/modules` including reported size, use count, state and **Used By** relationships.
+- Static module metadata, aliases, declared dependencies and module file information from `modinfo`.
+- Runtime refcount, parameters, holders and module taint markers from `/sys/module/<module>/...`.
+- Selected-module **Symbols...** lookup through `/proc/kallsyms`.
+- Global kernel taint value from `/proc/sys/kernel/tainted` shown as running-kernel context rather than falsely attributed to one module.
+- Search/category filtering and persistent Metadata Details presentation.
+
+## Data sources and acquisition
+
+- `/proc/modules`.
+- `modinfo`.
+- `/sys/module/<module>/...`.
+- `/proc/kallsyms` for explicit selected-module symbol lookup.
+- `/proc/sys/kernel/tainted`.
+
+The applet uses those sources according to the acquisition paths implemented in this release. Optional tools or privileged helpers only affect the views/actions that explicitly use them; they are not treated as silent substitutes for unrelated sources.
+
+## Interface
+
+Kernel Modules follows the LinSpectacles inventory + **Metadata Details** pattern where applicable: an acquired inventory remains separate from the details for the selected record, and search/filter controls operate on the data the applet has actually collected.
+
+The applet's **Options** surface provides the presentation/source/about controls implemented by this release, together with export controls where present in the source. Applet-specific actions remain explicit rather than being folded into background collection.
+
+## Read-only and scope boundaries
+
+Kernel Modules inventories loaded runtime modules, not every component built into the kernel. It does not load/unload modules, write module parameters or change module state. Declared `modinfo` dependencies and current sysfs holder relationships are reported separately.
+
+## Useful keyboard shortcuts
+
+| Command | Shortcut |
+| --- | --- |
+| Show / hide Metadata Details | `F3` |
+| Toggle Horizontal / Vertical details | `Ctrl+L` |
+| Refresh | `Shift+F5` |
+| Symbols | `F4` |
+| Options | `Ctrl+/` |
+
+## Running from source
+
+The supplied source is directly runnable on Linux. The Python-side requirements are:
+
+- Python 3.
+- PyQt6 for the graphical interface.
+
+Create a local virtual environment if you do not already have the required Python packages in the environment you want to use:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install PyQt6
+python3 linspectacles_kernel_modules/standalone.py
+```
+
+Linux commands, procfs/sysfs interfaces, system services, or optional helpers mentioned in **Data sources and acquisition** are applet-specific runtime inputs. A missing optional source is handled by the applet's existing availability/error path; it is not replaced here with an invented dependency or capability.
+
+No RPM installation instructions are included in this README.
+
+## Source layout and LinSpectacles integration
+
+The applet source is contained in:
+
+```text
+linspectacles_kernel_modules/
+├── __init__.py
+├── applet.json
+├── standalone.py
+├── README.md
+├── LICENSE
+└── kernel_modules/
+    ├── __init__.py
+    ├── applet.py
+    ├── _support.py
+    └── icon.png
+```
+
+`applet.json` supplies the LinSpectacles applet identity and entrypoint metadata. `standalone.py` launches the applet directly, while the package's applet factory provides the host-loadable LinSpectacles integration used by the source.
+
+## Configuration
+
+Presentation and inspection preferences are persisted only through the settings mechanisms already implemented by the applet. Persisted UI state does not grant the applet permission to modify the inspected Linux subsystem.
+
+## Scope
+
+Kernel Modules is intentionally specialist. Related Linux information that belongs to another LinSpectacles subsystem remains outside this applet rather than being inferred or duplicated here.
+
+## License
+
+GNU General Public License v3.0 or later. See [`LICENSE`](LICENSE).
+
+## Links
+
+- LinSpectacles organisation: <https://github.com/linspectacles/>
+- Repository: <https://github.com/linspectacles/kernel-modules>
+- Issues: <https://github.com/linspectacles/kernel-modules/issues>
+
+<p align="center">
+  <a href="https://github.com/linspectacles/kernel-modules">
+    <img
+      src="kernel_modules/icon.png"
+      alt="Kernel Modules"
+      width="256"
+    >
+  </a>
+</p>
